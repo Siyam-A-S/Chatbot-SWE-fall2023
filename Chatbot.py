@@ -6,24 +6,55 @@ with st.sidebar:
     "[Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
     "[View the source code](https://github.com/streamlit/llm-examples/blob/main/Chatbot.py)"
     "[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/streamlit/llm-examples?quickstart=1)"
+# Define page titles
+page_titles = {
+    "homepage": "BisonAdvisor - Your Smart Advisor",
+    "about_us": "About Us",
+    "how_it_works": "How it Works",
+    "pricing": "Pricing",
+    "blog": "Blog",
+    "contact": "Contact",
+    # Define page functions
+def homepage():
+    st.title("BisonAdvisor - Your Smart Advisor")
+    # Add homepage content
 
-st.title("AskAdvisor")
-st.caption("A streamlit chatbot powered by OpenAI LLM and JUICEPUPS")
-if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
+def about_us():
+    st.title("About BisonAdvisor")
+    # Add about us content
 
-for msg in st.session_state.messages:
-    st.chat_message(msg["role"]).write(msg["content"])
+def chatbot():
+    st.title("AskAdvisor")
+    st.caption("A streamlit chatbot powered by OpenAI LLM and JUICEPUPS")
+    if "messages" not in st.session_state:
+        st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
+    
+    for msg in st.session_state.messages:
+        st.chat_message(msg["role"]).write(msg["content"])
+    
+    if prompt := st.chat_input():
+        if not openai_api_key:
+            st.info("Please add your OpenAI API key to continue.")
+            st.stop()
+    
+        client = OpenAI(api_key=openai_api_key)
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        st.chat_message("user").write(prompt)
+        response = client.chat.completions.create(model="gpt-3.5-turbo", messages=st.session_state.messages)
+        msg = response.choices[0].message.content
+        st.session_state.messages.append({"role": "assistant", "content": msg})
+        st.chat_message("assistant").write(msg)
 
-if prompt := st.chat_input():
-    if not openai_api_key:
-        st.info("Please add your OpenAI API key to continue.")
-        st.stop()
+# Create sidebar navigation
+selected_page = st.sidebar.radio("Navigate", list(page_titles.keys()))
 
-    client = OpenAI(api_key=openai_api_key)
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    st.chat_message("user").write(prompt)
-    response = client.chat.completions.create(model="gpt-3.5-turbo", messages=st.session_state.messages)
-    msg = response.choices[0].message.content
-    st.session_state.messages.append({"role": "assistant", "content": msg})
-    st.chat_message("assistant").write(msg)
+# Render selected page
+if selected_page == "homepage":
+    homepage()
+elif selected_page == "about_us":
+    about_us()
+elif selected_page = "chatbot":
+    chatbot()
+}
+
+
